@@ -4,6 +4,9 @@ from fastapi import HTTPException, status
 
 from ..models import User
 from ..schemas.users import UserCreate
+from ..security import Security
+
+security = Security()
 
 
 class UserServices:
@@ -33,14 +36,14 @@ class UserServices:
             db_user = User(
                 email=user_data.email,
                 username=user_data.username,
-                password=user_data.password
+                password=security.get_password_hash(user_data.password)
             )
             try:
                 db.add(db_user)
                 db.commit()
                 db.refresh(db_user)
                 return f'{user_data.username} registered successfully'
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
