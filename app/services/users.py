@@ -16,11 +16,13 @@ class UserServices:
 
     @staticmethod
     def create_user(user_data: UserCreate, db: Session):
+        """ Create a new user """
         db_existing_user = db\
             .query(User)\
             .filter(or_(User.email == user_data.email, User.username == user_data.username))\
             .first()
 
+        # If a user exists, check their email and username - these fields should be unique
         if db_existing_user:
             if db_existing_user.email == user_data.email:
                 raise HTTPException(
@@ -32,12 +34,14 @@ class UserServices:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f'username: {user_data.username} is not available'
                 )
+        # create a new user if none is found in the database
         else:
             db_user = User(
                 email=user_data.email,
                 username=user_data.username,
                 password=security.get_password_hash(user_data.password)
             )
+            # add the new user to database
             try:
                 db.add(db_user)
                 db.commit()
@@ -52,6 +56,7 @@ class UserServices:
 
     @staticmethod
     def login_user(username: str, password: str, db: Session):
+        """ Login user with given credentials """
         user = security.authenticate_user(username, password, db)
         if not user:
             raise HTTPException(
