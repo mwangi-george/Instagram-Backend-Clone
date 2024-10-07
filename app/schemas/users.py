@@ -20,3 +20,10 @@ class UserCreate(BaseModel):
                 "password": "zxcv",
             }
         }
+
+
+class TokenCreate(BaseModel):
+    access_token: str
+    token_type: str
+
+

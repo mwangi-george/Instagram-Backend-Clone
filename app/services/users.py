@@ -49,3 +49,14 @@ class UserServices:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail='Could not register user. Something went wrong!'
                 )
+
+    @staticmethod
+    def login_user(username: str, password: str, db: Session):
+        user = security.authenticate_user(username, password, db)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Incorrect username or password'
+            )
+        access_token = security.create_access_token(data={'sub': user.username})
+        return {'access_token': access_token, 'token_type': 'Bearer'}
