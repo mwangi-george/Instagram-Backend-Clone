@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
 from passlib.context import CryptContext
@@ -45,13 +45,21 @@ class Security:
         return db_user
 
     def create_access_token(self, data: dict) -> str:
-        to_encode = data.copy()
-        expire = datetime.now() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
-        to_encode.update({'exp': expire})
-        encoded_jwt = jwt.encode(to_encode, self.JWT_SECRET_KEY, algorithm=self.ALGORITHM)
-        return encoded_jwt
+        """ Create an access token for authentication """
+        try:
+            to_encode = data.copy()
+            expire = datetime.now() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+            to_encode.update({'exp': expire})
+            encoded_jwt = jwt.encode(to_encode, self.JWT_SECRET_KEY, algorithm=self.ALGORITHM)
+            return encoded_jwt
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Could not validate credentials',
+            )
 
     def get_current_user(self, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+        """ Get current user from token """
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
