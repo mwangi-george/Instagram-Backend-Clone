@@ -1,5 +1,5 @@
 from .base import Base, get_db
-from .commen_likes import CommentLike
+from .comment_likes import CommentLike
 from .comments import Comment
 from .followers import Follower
 from .likes import Like
