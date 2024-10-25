@@ -12,7 +12,10 @@ from ..schemas.users import (
 
 
 def create_user_router() -> APIRouter:
-    router = APIRouter(prefix="/auth", tags=["Authentication"])
+    router = APIRouter(
+        prefix="/auth",
+        tags=["Authentication"],
+    )
 
     # instantiate UserServices class with implementation logic
     user_services = UserServices()
