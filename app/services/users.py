@@ -1,9 +1,12 @@
+
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
-
+from fastapi import HTTPException, status, BackgroundTasks
 from ..models import User
-from ..schemas.users import UserCreate
+from ..schemas.users import UserCreate, PasswordResetConfirm, PasswordResetRequest
 from ..security import Security
 
 security = Security()
@@ -65,3 +68,45 @@ class UserServices:
             )
         access_token = security.create_access_token(data={'sub': user.username})
         return {'access_token': access_token, 'token_type': 'Bearer'}
+
+    @staticmethod
+    def send_email(recipient: str, token: str):
+        sender = security.ADMIN_EMAIL
+        pwd = security.ADMIN_EMAIL_PASSWORD
+        reset_link = f"http://127.0.0.1:8000/auth/password-reset-request?token={token}"
+
+        email_body = f"""
+                <html>
+                <body>
+                 <p>Hi there! 
+                 <br>Click the link to reset your password: {reset_link}</p>
+                </body>
+                </html>
+                """
+        message = MIMEMultipart("alternative", None, [MIMEText(email_body, 'html')])
+        message["Subject"] = "Password Reset: Instagram"
+        message["From"] = sender
+        message["To"] = recipient
+
+        try:
+            server = smtplib.SMTP('smtp.gmail.com:587')
+            server.ehlo()
+            server.starttls()
+            server.login(sender, pwd)
+            server.sendmail(sender, recipient, message.as_string())
+            server.quit()
+            print("Email sent")
+        except Exception as e:
+            print(f"Error in sending email: {e}")
+
+    async def send_password_reset_email(self, recipient: str, background_tasks: BackgroundTasks, db: Session) -> str:
+        user = db.query(User).filter_by(email=recipient).first()
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
+
+        reset_token = security.create_access_token(data={'sub': user.email}, for_password_reset=True)
+
+        # send the email in the background
+        background_tasks.add_task(self.send_email, user.email, reset_token)
+        return "Password Reset Request sent"
+
