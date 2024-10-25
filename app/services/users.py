@@ -71,9 +71,10 @@ class UserServices:
 
     @staticmethod
     def send_email(recipient: str, token: str):
+        """ Helper function for sending email to given recipient """
         sender = security.ADMIN_EMAIL
         pwd = security.ADMIN_EMAIL_PASSWORD
-        reset_link = f"http://127.0.0.1:8000/auth/password-reset-request?token={token}"
+        reset_link = f"http://127.0.0.1:8000/auth/password-reset-request?token={token}" # Confirmation Url
 
         email_body = f"""
                 <html>
@@ -100,10 +101,13 @@ class UserServices:
             print(f"Error in sending email: {e}")
 
     async def send_password_reset_email(self, recipient: str, background_tasks: BackgroundTasks, db: Session) -> str:
+
+        # check whether user exists by email
         user = db.query(User).filter_by(email=recipient).first()
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
 
+        # create reset token
         reset_token = security.create_access_token(data={'sub': user.email}, for_password_reset=True)
 
         # send the email in the background
