@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
@@ -21,7 +21,7 @@ class Security:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
     ACCESS_TOKEN_EXPIRE_MINUTES = 60
-    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 15
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 1
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
     ADMIN_EMAIL = os.getenv('EMAIL')
     ADMIN_EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
@@ -52,9 +52,9 @@ class Security:
         try:
             to_encode = data.copy()
             if for_password_reset:
-                expire = datetime.now() + timedelta(minutes=self.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+                expire = datetime.now(timezone.utc) + timedelta(minutes=self.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
             else:
-                expire = datetime.now() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+                expire = datetime.now(timezone.utc) + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
 
             to_encode.update({'exp': expire})
             encoded_jwt = jwt.encode(to_encode, self.JWT_SECRET_KEY, algorithm=self.ALGORITHM)

@@ -5,8 +5,10 @@ from email.mime.text import MIMEText
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, BackgroundTasks
+from jose import jwt, JWTError
+
 from ..models import User
-from ..schemas.users import UserCreate, PasswordResetConfirm, PasswordResetRequest
+from ..schemas.users import UserCreate, ChangePasswordSchema
 from ..security import Security
 
 security = Security()
@@ -74,7 +76,7 @@ class UserServices:
         """ Helper function for sending email to given recipient """
         sender = security.ADMIN_EMAIL
         pwd = security.ADMIN_EMAIL_PASSWORD
-        reset_link = f"http://127.0.0.1:8000/auth/password-reset-request?token={token}" # Confirmation Url
+        reset_link = f"http://127.0.0.1:8000/auth/validate-reset-token?token={token}"  # Confirmation Url
 
         email_body = f"""
                 <html>
@@ -96,7 +98,7 @@ class UserServices:
             server.login(sender, pwd)
             server.sendmail(sender, recipient, message.as_string())
             server.quit()
-            print("Email sent")
+            print("Password reset email sent")
         except Exception as e:
             print(f"Error in sending email: {e}")
 
@@ -113,4 +115,30 @@ class UserServices:
         # send the email in the background
         background_tasks.add_task(self.send_email, user.email, reset_token)
         return "Password Reset Request sent"
+
+    @staticmethod
+    def validate_reset_token(token: str) -> str:
+        try:
+            payload = jwt.decode(token, security.JWT_SECRET_KEY, algorithms=[security.ALGORITHM])
+            email: str = payload.get('sub')
+            if email is None:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
+            return email
+        except JWTError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid or expired token!')
+
+    def reset_password(self, token: str, new_password, db: Session):
+        user_email = self.validate_reset_token(token)
+        user = db.query(User).filter_by(email=user_email).first()
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
+        try:
+            user.password = security.get_password_hash(new_password)
+            db.add(user)
+            db.commit()
+            return 'Password has been Changed successfully'
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
 

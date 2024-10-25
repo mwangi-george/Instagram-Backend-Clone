@@ -30,6 +30,10 @@ class UserCreate(BaseModel):
         }
 
 
+class TokenData(BaseModel):
+    token: str
+
+
 class TokenCreate(BaseModel):
     access_token: str
     token_type: str
@@ -39,6 +43,6 @@ class PasswordResetRequest(BaseModel):
     email: EmailStr
 
 
-class PasswordResetConfirm(BaseModel):
+class ChangePasswordSchema(BaseModel):
     token: str
     new_password: str = Field(..., min_length=8)
