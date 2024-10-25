@@ -21,7 +21,10 @@ class Security:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
     ACCESS_TOKEN_EXPIRE_MINUTES = 60
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 15
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+    ADMIN_EMAIL = os.getenv('EMAIL')
+    ADMIN_EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
     def get_password_hash(self, password) -> str:
         return self.pwd_context.hash(password)
@@ -44,11 +47,15 @@ class Security:
             return False
         return db_user
 
-    def create_access_token(self, data: dict) -> str:
+    def create_access_token(self, data: dict, for_password_reset: bool = False) -> str:
         """ Create an access token for authentication """
         try:
             to_encode = data.copy()
-            expire = datetime.now() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+            if for_password_reset:
+                expire = datetime.now() + timedelta(minutes=self.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+            else:
+                expire = datetime.now() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+
             to_encode.update({'exp': expire})
             encoded_jwt = jwt.encode(to_encode, self.JWT_SECRET_KEY, algorithm=self.ALGORITHM)
             return encoded_jwt
