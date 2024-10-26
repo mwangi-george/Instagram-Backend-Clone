@@ -9,7 +9,7 @@
 
 
 # 2. User Profile
-# GET /user/{username} – Fetch user profile details.
+# GET /user/{username} – Fetch user profile details (bio, name, username, email, .
 # PUT /user/{username} – Edit user profile details (bio, name, etc.).
 # PUT /user/{username}/avatar – Upload/change user profile picture.
 # GET /user/{username}/posts – Fetch posts by user.
