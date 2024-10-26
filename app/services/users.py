@@ -103,7 +103,7 @@ class UserServices:
             print(f"Error in sending email: {e}")
 
     async def send_password_reset_email(self, recipient: str, background_tasks: BackgroundTasks, db: Session) -> str:
-
+        """ Function for sending email to a verified user """
         # check whether user exists by email
         user = db.query(User).filter_by(email=recipient).first()
         if not user:
@@ -118,6 +118,7 @@ class UserServices:
 
     @staticmethod
     def validate_reset_token(token: str) -> str:
+        """ Function to validate a token """
         try:
             payload = jwt.decode(token, security.JWT_SECRET_KEY, algorithms=[security.ALGORITHM])
             email: str = payload.get('sub')
@@ -128,6 +129,7 @@ class UserServices:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid or expired token!')
 
     def reset_password(self, token: str, new_password, db: Session):
+        """ Function to reset password """
         user_email = self.validate_reset_token(token)
         user = db.query(User).filter_by(email=user_email).first()
         if not user:
@@ -136,6 +138,7 @@ class UserServices:
             user.password = security.get_password_hash(new_password)
             db.add(user)
             db.commit()
+            db.refresh(user)
             return 'Password has been Changed successfully'
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

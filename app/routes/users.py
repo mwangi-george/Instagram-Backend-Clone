@@ -56,9 +56,9 @@ def create_user_router() -> APIRouter:
         path="/validate-reset-token", response_model=ActionConfirm, status_code=status.HTTP_200_OK,
         name="validate password reset token", description="Validate password reset token"
     )
-    async def validate_reset_token(token: str, db: Session = Depends(get_db)):
-        confirmation_message = user_services.validate_reset_token(token)
-        formated_response = ActionConfirm(msg=confirmation_message)
+    async def validate_reset_token(token: str):
+        response = user_services.validate_reset_token(token)
+        formated_response = ActionConfirm(msg="Success! Token has been validated")
         return formated_response
 
     # ------------------Update Password--------------------------

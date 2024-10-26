@@ -21,7 +21,7 @@ class Security:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
     pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
     ACCESS_TOKEN_EXPIRE_MINUTES = 60
-    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 1
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 10
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
     ADMIN_EMAIL = os.getenv('EMAIL')
     ADMIN_EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
