@@ -5,7 +5,6 @@ from ..models import get_db
 from ..services.users import UserServices
 from ..schemas.users import (
     ActionConfirm,
-    TokenData,
     TokenCreate,
     UserCreate,
     PasswordResetRequest,
