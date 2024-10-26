@@ -2,8 +2,8 @@ from fastapi import APIRouter, status, Depends, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from ..models import get_db
-from ..services.users import UserServices
-from ..schemas.users import (
+from ..services.auth import AuthServices
+from ..schemas.auth import (
     ActionConfirm,
     TokenCreate,
     UserCreate,
@@ -12,14 +12,14 @@ from ..schemas.users import (
 )
 
 
-def create_user_router() -> APIRouter:
+def create_auth_router() -> APIRouter:
     router = APIRouter(
         prefix="/auth",
         tags=["Authentication"],
     )
 
     # instantiate UserServices class with implementation logic
-    user_services = UserServices()
+    auth_services = AuthServices()
 
     # ------------------User Sign Up--------------------------
     @router.post(
@@ -27,7 +27,7 @@ def create_user_router() -> APIRouter:
         name="signup", description="Register user"
     )
     async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-        response = user_services.create_user(user_data, db)
+        response = auth_services.create_user(user_data, db)
         formated_response = ActionConfirm(msg=response)
         return formated_response
 
@@ -37,7 +37,7 @@ def create_user_router() -> APIRouter:
         name="login", description="User Login"
     )
     async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-        token = user_services.login_user(form_data.username, form_data.password, db)
+        token = auth_services.login_user(form_data.username, form_data.password, db)
         return token
 
     # ------------------Reset Password Request--------------------------
@@ -46,7 +46,7 @@ def create_user_router() -> APIRouter:
         name="password reset request", description="Request to change password"
     )
     async def request_password_reset(recipient: PasswordResetRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-        confirmation_message = await user_services.send_password_reset_email(recipient.email, background_tasks, db)
+        confirmation_message = await auth_services.send_password_reset_email(recipient.email, background_tasks, db)
         formated_response = ActionConfirm(msg=confirmation_message)
         return formated_response
 
@@ -56,7 +56,7 @@ def create_user_router() -> APIRouter:
         name="validate password reset token", description="Validate password reset token"
     )
     async def validate_reset_token(token: str):
-        response = user_services.validate_reset_token(token)
+        response = auth_services.validate_reset_token(token)
         formated_response = ActionConfirm(msg="Success! Token has been validated")
         return formated_response
 
@@ -66,7 +66,7 @@ def create_user_router() -> APIRouter:
         name="reset password", description="Reset user password"
     )
     async def reset_password(data: ChangePasswordSchema, db: Session = Depends(get_db)):
-        confirmation_message = user_services.reset_password(data.token, data.new_password, db)
+        confirmation_message = auth_services.reset_password(data.token, data.new_password, db)
         formated_response = ActionConfirm(msg=confirmation_message)
         return formated_response
 

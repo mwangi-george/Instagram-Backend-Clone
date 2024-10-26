@@ -8,13 +8,13 @@ from fastapi import HTTPException, status, BackgroundTasks
 from jose import jwt, JWTError
 
 from ..models import User
-from ..schemas.users import UserCreate, ChangePasswordSchema
+from ..schemas.auth import UserCreate, ChangePasswordSchema
 from ..security import Security
 
 security = Security()
 
 
-class UserServices:
+class AuthServices:
     """ Class to manage users """
     def __init__(self):
         pass
