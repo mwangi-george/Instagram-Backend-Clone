@@ -15,6 +15,7 @@ class User(Base):
     password = Column(String(255), nullable=False)
     bio = Column(Text, nullable=True)
     name = Column(String(100), nullable=True)
+    mobile_number = Column(String(100), nullable=True)
     avatar_url = Column(Text, nullable=True)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now)

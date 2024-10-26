@@ -44,6 +44,7 @@ class AuthServices:
             db_user = User(
                 email=user_data.email,
                 username=user_data.username,
+                mobile_number=user_data.mobile_number,
                 password=security.get_password_hash(user_data.password)
             )
             # add the new user to database
