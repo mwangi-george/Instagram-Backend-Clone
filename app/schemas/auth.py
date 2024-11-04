@@ -40,7 +40,7 @@ class UserCreate(BaseModel):
             "example": {
                 "username": "john_doe",
                 "email": "jdoe@gmail.com",
-                "mobile_number": "254740909890",
+                "mobile_number": "+254740909890",
                 "password": "DOE@JOHN_291",
             }
         }
